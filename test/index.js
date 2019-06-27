@@ -73,8 +73,8 @@ const mockedHub = {
 
 const mockedStaging = {
   entries: () => [
-    ['net:192.168.1.12:5678~noauth', {mode: 'lan'}],
-    ['net:192.168.1.13:6789~noauth', {mode: 'lan'}],
+    ['net:192.168.1.12:5678~noauth', {type: 'lan'}],
+    ['net:192.168.1.13:6789~noauth', {type: 'lan'}],
   ],
 };
 
@@ -127,7 +127,7 @@ tape('peersAll()', t => {
       {
         address: 'net:192.168.1.13:6789~noauth',
         source: 'local',
-        mode: 'lan',
+        type: 'lan',
       },
     ]),
   );
@@ -253,7 +253,7 @@ tape('peersConnectable("staging")', t => {
       {
         address: 'net:192.168.1.13:6789~noauth',
         source: 'local',
-        mode: 'lan',
+        type: 'lan',
       },
     ]),
   );
@@ -277,7 +277,7 @@ tape('peersConnectable("dbAndStaging")', t => {
       {
         address: 'net:192.168.1.13:6789~noauth',
         source: 'local',
-        mode: 'lan',
+        type: 'lan',
       },
     ]),
   );
@@ -300,7 +300,7 @@ tape('query hasNoAttempts', t => {
       {
         address: 'net:192.168.1.13:6789~noauth',
         source: 'local',
-        mode: 'lan',
+        type: 'lan',
       },
     ]),
   );

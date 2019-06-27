@@ -26,7 +26,7 @@ export function passesGroupDebounce(
 ) {
   return (group: Array<Peer>) => {
     const newestStateChange = group.reduce(
-      (M: number, p: Peer) => Math.max(M, p.stateChange || 0),
+      (max: number, peer: Peer) => Math.max(max, peer.stateChange || 0),
       0,
     );
     const minTimeThreshold: number = newestStateChange + groupMin;

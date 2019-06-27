@@ -9,13 +9,12 @@ import * as Health from './queries/health';
 import * as Sorting from './queries/sorting';
 
 /**
- * Convert ssb-conn-staging modes to legacy gossip 'source'
- * @param mode
+ * Convert ssb-conn-staging types to legacy gossip 'source'
  */
-function modeToSource(mode: StagedData['mode']): Peer['source'] {
-  if (mode === 'lan') return 'local';
-  if (mode === 'bt') return 'bt';
-  if (mode === 'internet') return 'pub';
+function typeToSource(type: StagedData['type']): Peer['source'] {
+  if (type === 'lan') return 'local';
+  if (type === 'bt') return 'bt';
+  if (type === 'internet') return 'pub';
   return 'manual';
 }
 
@@ -40,7 +39,7 @@ class ConnQuery {
     const peer = this.db.has(address)
       ? {address, ...this.db.get(address)}
       : !!stagingEntry
-      ? {address, source: modeToSource(stagingEntry[1].mode)}
+      ? {address, source: typeToSource(stagingEntry[1].type)}
       : {address, source: 'manual'};
     if (hubData.key) peer.key = hubData.key;
     return peer;
@@ -113,8 +112,8 @@ class ConnQuery {
         return state !== 'connected' && state !== 'connecting';
       })
       .map(([address, data]) => {
-        if (!data.source && data.mode) {
-          return {address, source: modeToSource(data.mode), ...data};
+        if (!data.source && data.type) {
+          return {address, source: typeToSource(data.type), ...data};
         } else {
           return {address, ...data};
         }
