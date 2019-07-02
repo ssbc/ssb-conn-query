@@ -8,9 +8,9 @@ export function passesExpBackoff(
   max: number = Infinity,
   timestamp: number = Date.now(),
 ) {
-  return (peer: Peer) => {
-    const prevAttempt = peer.stateChange! || 0;
-    const numFailures = peer.failure! || 0;
+  return ([_addr, data]: Peer) => {
+    const prevAttempt = data.stateChange! || 0;
+    const numFailures = data.failure! || 0;
     const expBackoff = Math.min(Math.pow(2, numFailures) * step, max);
     const nextAttempt = prevAttempt + expBackoff;
     return nextAttempt < timestamp;
@@ -26,7 +26,7 @@ export function passesGroupDebounce(
 ) {
   return (group: Array<Peer>) => {
     const newestStateChange = group.reduce(
-      (max: number, peer: Peer) => Math.max(max, peer.stateChange || 0),
+      (max: number, [_addr, p]: Peer) => Math.max(max, p.stateChange || 0),
       0,
     );
     const minTimeThreshold: number = newestStateChange + groupMin;

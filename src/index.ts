@@ -1,24 +1,13 @@
 import ConnDB = require('ssb-conn-db');
 import ConnHub = require('ssb-conn-hub');
 import ConnStaging = require('ssb-conn-staging');
-import {Address, ConnectionData} from 'ssb-conn-hub/lib/types';
-import {StagedData} from 'ssb-conn-staging/lib/types';
+import {Address, ConnectionData as HubData} from 'ssb-conn-hub/lib/types';
 import {Peer} from './types';
 import * as Time from './queries/time';
 import * as Health from './queries/health';
 import * as Sorting from './queries/sorting';
 
-/**
- * Convert ssb-conn-staging types to legacy gossip 'source'
- */
-function typeToSource(type: StagedData['type']): Peer['source'] {
-  if (type === 'lan') return 'local';
-  if (type === 'bt') return 'bt';
-  if (type === 'internet') return 'pub';
-  return 'manual';
-}
-
-type HubEntry = [Address, ConnectionData];
+type HubEntry = [Address, HubData];
 
 class ConnQuery {
   private db: ConnDB;
@@ -36,12 +25,14 @@ class ConnQuery {
       ([addr]) => addr === address,
     );
 
-    const peer = this.db.has(address)
-      ? {address, ...this.db.get(address)}
+    const peer: Peer = this.db.has(address)
+      ? [address, {pool: 'db', ...this.db.get(address)}]
       : !!stagingEntry
-      ? {address, source: typeToSource(stagingEntry[1].type)}
-      : {address, source: 'manual'};
-    if (hubData.key) peer.key = hubData.key;
+      ? [address, {pool: 'staging', ...stagingEntry[1]}]
+      : [address, {pool: 'hub', ...hubData}];
+    if (hubData.key && !peer[1].key) {
+      (peer[1] as any).key = hubData.key;
+    }
     return peer;
   }
 
@@ -104,19 +95,25 @@ class ConnQuery {
     const useDB = pool === 'db' || pool === 'dbAndStaging';
     const useStaging = pool === 'staging' || pool === 'dbAndStaging';
 
+    const dbPool: Array<Peer> = useDB
+      ? Array.from(this.db.entries()).map(([addr, data]) => [
+          addr,
+          {pool: 'db', ...data},
+        ])
+      : [];
+    const stagingPool: Array<Peer> = useStaging
+      ? Array.from(this.staging.entries()).map(([addr, data]) => [
+          addr,
+          {pool: 'staging', ...data},
+        ])
+      : [];
+
     return ([] as Array<[string, any]>)
-      .concat(useDB ? Array.from(this.db.entries()) : [])
-      .concat(useStaging ? Array.from(this.staging.entries()) : [])
+      .concat(dbPool)
+      .concat(stagingPool)
       .filter(([address]) => {
         const state = this.hub.getState(address);
         return state !== 'connected' && state !== 'connecting';
-      })
-      .map(([address, data]) => {
-        if (!data.source && data.type) {
-          return {address, source: typeToSource(data.type), ...data};
-        } else {
-          return {address, ...data};
-        }
       });
   }
 

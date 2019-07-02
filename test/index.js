@@ -63,6 +63,7 @@ const mockedHub = {
     ['net:hub.com:3456~noauth', {state: 'disconnecting'}],
     ['net:hub.com:4567~noauth', {state: 'connected'}],
     ['net:192.168.1.12:5678~noauth', {state: 'connecting'}],
+    ['bt:65D900DDB353~noauth', {state: 'connecting'}],
   ],
   getState(address) {
     const entry = this.entries().find(([addr]) => addr === address);
@@ -80,8 +81,8 @@ const mockedStaging = {
 
 function orderPeersByAddress(array) {
   return array.sort((a, b) => {
-    if (a.address < b.address) return -1;
-    if (a.address > b.address) return 1;
+    if (a[0] < b[0]) return -1;
+    if (a[0] > b[0]) return 1;
     return 0;
   });
 }
@@ -93,42 +94,60 @@ tape('peersAll()', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:1234~noauth',
-        source: 'friends',
-        failure: 1,
-        stateChange: time15,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:hub.com:2345~noauth',
-        source: 'pub',
-        failure: 4,
-        stateChange: time15,
-      },
-      {
-        address: 'net:hub.com:3456~noauth',
-        source: 'manual',
-        stateChange: time15,
-        duration: {mean: 1.1},
-      },
-      {
-        address: 'net:hub.com:4567~noauth',
-        source: 'manual',
-        stateChange: time17,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:192.168.1.12:5678~noauth',
-        source: 'local',
-      },
-      {
-        address: 'net:192.168.1.13:6789~noauth',
-        source: 'local',
-        type: 'lan',
-      },
+      ['bt:65D900DDB353~noauth', {pool: 'hub', state: 'connecting'}],
+      [
+        'net:hub.com:1234~noauth',
+        {
+          pool: 'db',
+          source: 'friends',
+          failure: 1,
+          stateChange: time15,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:hub.com:2345~noauth',
+        {
+          pool: 'db',
+          source: 'pub',
+          failure: 4,
+          stateChange: time15,
+        },
+      ],
+      [
+        'net:hub.com:3456~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time15,
+          duration: {mean: 1.1},
+        },
+      ],
+      [
+        'net:hub.com:4567~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time17,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:192.168.1.12:5678~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
+      [
+        'net:192.168.1.13:6789~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
     ]),
   );
 
@@ -142,21 +161,27 @@ tape('peersConnected()', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:1234~noauth',
-        source: 'friends',
-        failure: 1,
-        stateChange: time15,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:hub.com:4567~noauth',
-        source: 'manual',
-        stateChange: time17,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
+      [
+        'net:hub.com:1234~noauth',
+        {
+          pool: 'db',
+          source: 'friends',
+          failure: 1,
+          stateChange: time15,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:hub.com:4567~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time17,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
     ]),
   );
 
@@ -170,16 +195,23 @@ tape('peersConnecting()', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:2345~noauth',
-        source: 'pub',
-        failure: 4,
-        stateChange: time15,
-      },
-      {
-        address: 'net:192.168.1.12:5678~noauth',
-        source: 'local',
-      },
+      ['bt:65D900DDB353~noauth', {pool: 'hub', state: 'connecting'}],
+      [
+        'net:hub.com:2345~noauth',
+        {
+          pool: 'db',
+          source: 'pub',
+          failure: 4,
+          stateChange: time15,
+        },
+      ],
+      [
+        'net:192.168.1.12:5678~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
     ]),
   );
 
@@ -193,31 +225,44 @@ tape('peersInConnection()', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:1234~noauth',
-        source: 'friends',
-        failure: 1,
-        stateChange: time15,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:hub.com:2345~noauth',
-        source: 'pub',
-        failure: 4,
-        stateChange: time15,
-      },
-      {
-        address: 'net:hub.com:4567~noauth',
-        source: 'manual',
-        stateChange: time17,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:192.168.1.12:5678~noauth',
-        source: 'local',
-      },
+      ['bt:65D900DDB353~noauth', {pool: 'hub', state: 'connecting'}],
+      [
+        'net:hub.com:1234~noauth',
+        {
+          pool: 'db',
+          source: 'friends',
+          failure: 1,
+          stateChange: time15,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:hub.com:2345~noauth',
+        {
+          pool: 'db',
+          source: 'pub',
+          failure: 4,
+          stateChange: time15,
+        },
+      ],
+      [
+        'net:hub.com:4567~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time17,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:192.168.1.12:5678~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
     ]),
   );
 
@@ -231,12 +276,15 @@ tape('peersConnectable("db")', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:3456~noauth',
-        source: 'manual',
-        stateChange: time15,
-        duration: {mean: 1.1},
-      },
+      [
+        'net:hub.com:3456~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time15,
+          duration: {mean: 1.1},
+        },
+      ],
     ]),
   );
 
@@ -250,11 +298,13 @@ tape('peersConnectable("staging")', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:192.168.1.13:6789~noauth',
-        source: 'local',
-        type: 'lan',
-      },
+      [
+        'net:192.168.1.13:6789~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
     ]),
   );
 
@@ -268,17 +318,22 @@ tape('peersConnectable("dbAndStaging")', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:3456~noauth',
-        source: 'manual',
-        stateChange: time15,
-        duration: {mean: 1.1},
-      },
-      {
-        address: 'net:192.168.1.13:6789~noauth',
-        source: 'local',
-        type: 'lan',
-      },
+      [
+        'net:hub.com:3456~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time15,
+          duration: {mean: 1.1},
+        },
+      ],
+      [
+        'net:192.168.1.13:6789~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
     ]),
   );
 
@@ -293,15 +348,21 @@ tape('query hasNoAttempts', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:192.168.1.12:5678~noauth',
-        source: 'local',
-      },
-      {
-        address: 'net:192.168.1.13:6789~noauth',
-        source: 'local',
-        type: 'lan',
-      },
+      ['bt:65D900DDB353~noauth', {pool: 'hub', state: 'connecting'}],
+      [
+        'net:192.168.1.12:5678~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
+      [
+        'net:192.168.1.13:6789~noauth',
+        {
+          pool: 'staging',
+          type: 'lan',
+        },
+      ],
     ]),
   );
 
@@ -316,12 +377,15 @@ tape('query hasOnlyFailedAttempts', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:2345~noauth',
-        source: 'pub',
-        failure: 4,
-        stateChange: time15,
-      },
+      [
+        'net:hub.com:2345~noauth',
+        {
+          pool: 'db',
+          source: 'pub',
+          failure: 4,
+          stateChange: time15,
+        },
+      ],
     ]),
   );
 
@@ -336,27 +400,36 @@ tape('query hasSuccessfulAttempts', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:1234~noauth',
-        source: 'friends',
-        failure: 1,
-        stateChange: time15,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:hub.com:3456~noauth',
-        source: 'manual',
-        stateChange: time15,
-        duration: {mean: 1.1},
-      },
-      {
-        address: 'net:hub.com:4567~noauth',
-        source: 'manual',
-        stateChange: time17,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
+      [
+        'net:hub.com:1234~noauth',
+        {
+          pool: 'db',
+          source: 'friends',
+          failure: 1,
+          stateChange: time15,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:hub.com:3456~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time15,
+          duration: {mean: 1.1},
+        },
+      ],
+      [
+        'net:hub.com:4567~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time17,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
     ]),
   );
 
@@ -371,21 +444,27 @@ tape('query hasPinged', t => {
   t.deepEquals(
     orderPeersByAddress(peers),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:1234~noauth',
-        source: 'friends',
-        failure: 1,
-        stateChange: time15,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:hub.com:4567~noauth',
-        source: 'manual',
-        stateChange: time17,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
+      [
+        'net:hub.com:1234~noauth',
+        {
+          pool: 'db',
+          source: 'friends',
+          failure: 1,
+          stateChange: time15,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:hub.com:4567~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time17,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
     ]),
   );
 
@@ -403,21 +482,27 @@ tape('query passesExpBackoff', t => {
   t.deepEquals(
     orderPeersByAddress(smallBackoff),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:1234~noauth',
-        source: 'friends',
-        failure: 1,
-        stateChange: time15,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:hub.com:4567~noauth',
-        source: 'manual',
-        stateChange: time17,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
+      [
+        'net:hub.com:1234~noauth',
+        {
+          pool: 'db',
+          source: 'friends',
+          failure: 1,
+          stateChange: time15,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:hub.com:4567~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time17,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
     ]),
   );
 
@@ -427,13 +512,16 @@ tape('query passesExpBackoff', t => {
     .filter(ConnQuery.passesExpBackoff(8e3, 60e3, time30));
 
   t.deepEquals(mediumBackoff, [
-    {
-      address: 'net:hub.com:4567~noauth',
-      source: 'manual',
-      stateChange: time17,
-      duration: {mean: 1.1},
-      ping: {rtt: {mean: 3.5}},
-    },
+    [
+      'net:hub.com:4567~noauth',
+      {
+        pool: 'db',
+        source: 'manual',
+        stateChange: time17,
+        duration: {mean: 1.1},
+        ping: {rtt: {mean: 3.5}},
+      },
+    ],
   ]);
 
   const bigBackoff = connQuery
@@ -456,21 +544,27 @@ tape('query passesGroupDebounce', t => {
   t.deepEquals(
     orderPeersByAddress(smallDebounce),
     orderPeersByAddress([
-      {
-        address: 'net:hub.com:1234~noauth',
-        source: 'friends',
-        failure: 1,
-        stateChange: time15,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
-      {
-        address: 'net:hub.com:4567~noauth',
-        source: 'manual',
-        stateChange: time17,
-        duration: {mean: 1.1},
-        ping: {rtt: {mean: 3.5}},
-      },
+      [
+        'net:hub.com:1234~noauth',
+        {
+          pool: 'db',
+          source: 'friends',
+          failure: 1,
+          stateChange: time15,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
+      [
+        'net:hub.com:4567~noauth',
+        {
+          pool: 'db',
+          source: 'manual',
+          stateChange: time17,
+          duration: {mean: 1.1},
+          ping: {rtt: {mean: 3.5}},
+        },
+      ],
     ]),
   );
 
@@ -491,21 +585,27 @@ tape('sortByStateChange', t => {
   ).reverse();
 
   t.deepEquals(peers, [
-    {
-      address: 'net:hub.com:4567~noauth',
-      source: 'manual',
-      stateChange: time17,
-      duration: {mean: 1.1},
-      ping: {rtt: {mean: 3.5}},
-    },
-    {
-      address: 'net:hub.com:1234~noauth',
-      source: 'friends',
-      failure: 1,
-      stateChange: time15,
-      duration: {mean: 1.1},
-      ping: {rtt: {mean: 3.5}},
-    },
+    [
+      'net:hub.com:4567~noauth',
+      {
+        pool: 'db',
+        source: 'manual',
+        stateChange: time17,
+        duration: {mean: 1.1},
+        ping: {rtt: {mean: 3.5}},
+      },
+    ],
+    [
+      'net:hub.com:1234~noauth',
+      {
+        pool: 'db',
+        source: 'friends',
+        failure: 1,
+        stateChange: time15,
+        duration: {mean: 1.1},
+        ping: {rtt: {mean: 3.5}},
+      },
+    ],
   ]);
 
   t.end();

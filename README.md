@@ -6,6 +6,27 @@ Module that helps querying potential SSB peer connections. For use with the SSB 
 
 This module is only used to create an SSB CONN plugin, not used directly by applications. A ConnQuery instance should be available on the CONN plugin, with the following API:
 
+### Types
+
+All "peers" returned by these APIs are key-value arrays, of the format:
+
+```typescript
+type Peer = [Address, Data]
+```
+
+where
+
+```typescript
+type Address = string;
+
+type Data = {pool: 'db' | 'hub' | 'staging'} &
+  Partial<DBData> &
+  Partial<HubData> &
+  Partial<StagingData>;
+```
+
+In other words, a peer is an array where the first element is the [multiserver](https://github.com/ssbc/multiserver/) address for that peer, and the second element is an object that is either the ConnDB data or the ConnHub or the ConnStaging data (plus an additional field `pool`).
+
 ### Instance API
 
 These methods are available on instances of the ConnQuery class:
@@ -20,7 +41,6 @@ These methods are available on instances of the ConnQuery class:
 ### Static API
 
 These functions are available as statics on the ConnQuery class:
-
 
 * `ConnQuery.passesExpBackoff(step, max, timestamp): peer => boolean`: Answers whether a peer has passed an 'exponential backoff' check, relative to a given timestamp (or `Date.now()` if no timestamp is provided). The exponential backoff is a certain time gap counting from the latest stateChange timestamp, and this gap grows with the number of connection failures that have occurred for this peer. Returns a function where the input is a peer object and the output is a boolean.
   - `step` A temporal parameter (measured in milliseconds) for how much the exponential backoff grows for each connection failure.
