@@ -1,7 +1,7 @@
 {
   "name": "ssb-conn-query",
   "description": "Module that helps querying potential SSB peer connections",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/staltz/ssb-conn-query",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
