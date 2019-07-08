@@ -1,6 +1,6 @@
 # ssb-conn-query
 
-Module that helps querying potential SSB peer connections. For use with the SSB CONN family of modules. See also [ssb-conn-db](https://github.com/staltz/ssb-conn-db), [ssb-conn-hub](https://github.com/staltz/ssb-conn-hub), and [ssb-conn-staging](https://github.com/staltz/ssb-conn-staging).
+Module that helps querying potential SSB peer connections. For use with the [SSB CONN](https://github.com/staltz/ssb-conn) family of modules.
 
 ## Usage
 
