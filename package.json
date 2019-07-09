@@ -12,7 +12,7 @@
   "dependencies": {
     "ssb-conn-db": "~0.2.0",
     "ssb-conn-hub": "~0.0.9",
-    "ssb-conn-staging": "~0.0.5"
+    "ssb-conn-staging": "~0.0.6"
   },
   "devDependencies": {
     "@types/node": "^11.10.4",
