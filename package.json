@@ -10,7 +10,7 @@
     "url": "git://github.com/staltz/ssb-conn-query.git"
   },
   "dependencies": {
-    "ssb-conn-db": "~0.2.1",
+    "ssb-conn-db": "~0.3.0",
     "ssb-conn-hub": "~0.2.7",
     "ssb-conn-staging": "~0.1.0"
   },
