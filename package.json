@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "ssb-conn-db": "~1.0.1",
-    "ssb-conn-hub": "~1.1.0",
+    "ssb-conn-hub": "~1.2.0",
     "ssb-conn-staging": "~1.0.0"
   },
   "devDependencies": {
